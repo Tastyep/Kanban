@@ -1,14 +1,14 @@
 from ..command import task_commands
-from .controller import Controller
+from .service import Service
 
 
-class TaskController(Controller):
+class TaskService(Service):
     def __init__(self, cmd_dispatcher, repo_facade):
-        super(TaskController, self).__init__(cmd_dispatcher)
+        super(TaskService, self).__init__(cmd_dispatcher)
         self._task_repo = repo_facade.task_repo()
         self._register_handlers({
             task_commands.AddTask: self._add_task,
         })
 
-    def _add_task(self, task):
-        print("add task with content: {}".format(task.content()))
+    def _add_task(self, cmd):
+        print("add task with content: {}".format(cmd.task_content()))

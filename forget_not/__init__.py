@@ -1,9 +1,10 @@
 import sys
 import pymysql
 
-from interface.module import InterfaceModule
-from app.facade import AppFacade
-from app.controller.module import ControllerModule
+from .interface.module import InterfaceModule
+from .app.facade import AppFacade
+from .app.service.module import ServiceModule
+from .app.command.user_commands import AddUser
 
 from infra.repo.factory import Factory as RepoFactory
 from infra.repo.facade import Facade as RepoFacade
@@ -11,13 +12,13 @@ from infra.repo.facade import Facade as RepoFacade
 
 def _real_main(argv):
     app_facade = AppFacade()
-    interface = InterfaceModule(app_facade.command_dispatcher())
-    controller_module = ControllerModule()
+    interface = InterfaceModule(app_facade)
+    service_module = ServiceModule()
 
     db = _connect_to_db()
     repo_factory = RepoFactory()
     repo_facade = RepoFacade(repo_factory, db)
-    controller_module.register_controllers(app_facade, repo_facade)
+    service_module.register_services(app_facade, repo_facade)
 
     interface.run()
 
