@@ -8,8 +8,8 @@ from .app.command.user_commands import AddUser
 
 from .domain.service.model_identity import ModelIdentity
 
-from .infra.repo.factory import Factory as RepoFactory
-from .infra.repo.facade import Facade as RepoFacade
+from .infra.data.repo.factory import Factory as RepoFactory
+from .infra.data.repo.facade import Facade as RepoFacade
 
 
 def _real_main(argv):
