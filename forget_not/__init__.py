@@ -1,5 +1,5 @@
 import sys
-import pymysql
+import sqlite3
 
 from .interface.module import InterfaceModule
 from .app.facade import AppFacade
@@ -15,7 +15,7 @@ def _real_main(argv):
     interface = InterfaceModule(app_facade)
     service_module = ServiceModule()
 
-    db = _connect_to_db()
+    db = _connect_to_db('forget_not.db')
     repo_factory = RepoFactory()
     repo_facade = RepoFacade(repo_factory, db)
     service_module.register_services(app_facade, repo_facade)
@@ -23,12 +23,11 @@ def _real_main(argv):
     interface.run()
 
 
-def _connect_to_db():
+def _connect_to_db(name):
     try:
-        db = pymysql.connect(host='127.0.0.1', user='root', password="",
-                             unix_socket="/var/run/mysqld/mysqld.sock")
-    except pymysql.err.OperationalError as e:
-        print("Could not connect to database: {}".format(e))
+        db = sqlite3.connect(name)
+    except sqlite3.Error as e:
+        print("Could not connect to database '{}': {}".format(name, e))
         sys.exit(1)
     return db
 
