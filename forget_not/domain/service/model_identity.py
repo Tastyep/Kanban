@@ -3,12 +3,8 @@ import uuid
 
 class ModelIdentity(object):
     def __init__(self, repo_facade):
-        self._user_repo = repo_facade.user_repo()
         self._board_repo = repo_facade.board_repo()
         self._task_repo = repo_facade.task_repo()
-
-    def identify_user(self):
-        return uuid.uuid5(uuid.NAMESPACE_OID, "user")
 
     def identify_board(self, board_idx=None):
         if board_idx is None:
