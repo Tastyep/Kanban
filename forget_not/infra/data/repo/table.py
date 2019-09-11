@@ -1,0 +1,2 @@
+BOARD = 'board'
+TASK = 'task'
