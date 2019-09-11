@@ -10,3 +10,6 @@ class Board(Entity):
 
     def name(self):
         return self._state.name
+
+    def active(self):
+        return self._state.active

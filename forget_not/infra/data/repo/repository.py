@@ -20,8 +20,14 @@ class Repository(object):
         )
         self._exec_query(q)
 
-    def find_by_id(id):
-        return None
+    def find_by_id(self, id):
+        entity = Table(self._table)
+        q = Query.from_(entity).select(
+            fn.Count('*')
+        ).where(
+            entity.id is id
+        )
+        self._exec_query(q)
 
     def _exec_query(self, query):
         cursor = self._db.cursor()

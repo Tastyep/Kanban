@@ -12,5 +12,15 @@ class BoardRepo(Repository):
         super(BoardRepo, self).__init__(db, table.BOARD)
         self._create_table('''
                            id BINARY(16) PRIMARY KEY,
-                           name TEXT
+                           name TEXT,
+                           active TINYINT NOT NULL
                            ''')
+
+    def find_active(self):
+        board = Table(self._table)
+        q = Query.from_(board).select(
+            board.star
+        ).where(
+            board.active == 1
+        )
+        self._exec_query(q)
