@@ -12,6 +12,7 @@ class BoardRepo(Repository):
         super(BoardRepo, self).__init__(db, table.BOARD)
         self._create_table('''
                            id BINARY(16) PRIMARY KEY,
+                           idx INT UNSIGNED NOT NULL,
                            name TEXT,
                            active TINYINT NOT NULL
                            ''')

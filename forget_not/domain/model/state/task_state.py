@@ -6,4 +6,5 @@ from uuid import UUID
 class TaskState:
     id: UUID
     board_id: UUID
+    index: int
     content: str
