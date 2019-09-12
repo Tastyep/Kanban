@@ -1,3 +1,5 @@
+from forget_not.domain.model.board import Board
+
 from ..command import board_commands
 from .service import Service
 
@@ -11,4 +13,5 @@ class BoardService(Service):
         })
 
     def _add_board(self, cmd):
-        print("add board with name: {}".format(cmd.board_name()))
+        board = Board(cmd.entity_id(), cmd.board_idx(), cmd.board_name(), True)
+        self._board_repo.create(board)

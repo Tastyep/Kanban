@@ -1,3 +1,5 @@
+from forget_not.domain.model.task import Task
+
 from ..command import task_commands
 from .service import Service
 
@@ -11,4 +13,5 @@ class TaskService(Service):
         })
 
     def _add_task(self, cmd):
-        print("add task with content: {}".format(cmd.task_content()))
+        task = Task(cmd.entity_id(), cmd.board_id(), cmd.task_idx(), cmd.task_content())
+        self._task_repo.create(task)
