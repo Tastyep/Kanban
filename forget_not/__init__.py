@@ -11,7 +11,6 @@ from .infra.data.repo.facade import Facade as RepoFacade
 
 def _real_main(argv):
     app_facade = AppFacade()
-    interface = InterfaceModule(app_facade)
     service_module = ServiceModule()
 
     db = _connect_to_db('forget_not.db')

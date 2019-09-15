@@ -1,4 +1,4 @@
-from command.dispatcher import CommandDispatcher
+from .command.dispatcher import CommandDispatcher
 
 
 class AppFacade(object):
