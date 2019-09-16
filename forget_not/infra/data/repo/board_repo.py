@@ -2,6 +2,7 @@ from pypika import (
     Query,
     Table,
 )
+from pypika import functions as fn
 
 from forget_not.domain.model.board import make_board
 
@@ -20,10 +21,17 @@ class BoardRepo(Repository):
                            ''')
 
     def find_active(self):
-        board = Table(self._table)
-        q = Query.from_(board).select(
-            board.star
+        b = Table(self._table)
+        q = Query.from_(b).select(
+            b.id, b.idx, b.name, b.active
         ).where(
-            board.active == 1
+            b.active == True
         )
-        self._exec_query(q)
+        return self._fetchone(q)
+
+    def find_newest(self):
+        b = Table(self._table)
+        q = Query.from_(b).select(
+            b.id, fn.Max(b.idx), b.name, b.active
+        )
+        return self._fetchone(q)
