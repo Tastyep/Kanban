@@ -8,7 +8,7 @@ from forget_not.domain.service.model_identity import ModelIdentity
 from forget_not.domain.service.model_index import ModelIndex
 
 
-class CommandLineParser(object):
+class CommandLineController(object):
     def __init__(self, app_facade, repo_facade):
         self._cmd_dispatcher = app_facade.command_dispatcher()
         self._board_repo = repo_facade.board_repo()
@@ -26,7 +26,7 @@ class CommandLineParser(object):
             "board": self._add_board,
         }
 
-    def parse(self):
+    def run(self):
         args = vars(self._parser.parse_args())
         if not any(args.values()):
             self._parser.print_help()

@@ -1,10 +1,10 @@
-from .cmdline.input import CommandLineParser
+from .cmdline.controller import CommandLineController
 
 
 class InterfaceModule(object):
     def __init__(self, app_facade, repo_facade):
-        self._cmdline = CommandLineParser(app_facade, repo_facade)
+        self._cmdline = CommandLineController(app_facade, repo_facade)
 
     def run(self):
-        if self._cmdline.parse() is False:
+        if self._cmdline.run() is False:
             None  # Start GUI
