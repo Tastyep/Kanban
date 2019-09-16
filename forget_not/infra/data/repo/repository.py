@@ -4,35 +4,66 @@ from pypika import (
 )
 from pypika import functions as fn
 
+from ..mapper.placeholder import AnonPlaceHolder
+
 
 class Repository(object):
-    def __init__(self, db, table):
+    def __init__(self, db, table, entity_factory):
         self._db = db
         self._table = table
+        self._entity_factory = entity_factory
 
     def create(self, entity):
-        q = Query.into(Table(self._table)).insert(entity.state())
-        self._exec_query(q)
+        state = entity.state()
+        params = AnonPlaceHolder(len(state))
+        q = Query.into(Table(self._table)).insert(params)
+        self._write(q, state)
 
     def count(self):
-        q = Query.from_(Table(self._table)).select(
-            fn.Count('*')
+        entity = Table(self._table)
+        q = Query.from_().select(
+            fn.Count(entity.star)
         )
-        self._exec_query(q)
+        return self._fetchone(q)
+
+    def list(self):
+        entity = Table(self._table)
+        q = Query.from_(entity).select(
+            entity.Star()
+        )
+        return self._fetchmany(q)
 
     def find_by_id(self, id):
         entity = Table(self._table)
         q = Query.from_(entity).select(
-            fn.Count('*')
+            entity.star
         ).where(
-            entity.id is id
+            entity.id == id
         )
-        self._exec_query(q)
+        return self._fetchone(q)
 
-    def _exec_query(self, query):
+    def _exec_query(self, query, params):
         cursor = self._db.cursor()
-        cursor.execute(str(query))
-        self._db.commit()
+        cursor.execute(str(query), params)
+        return cursor
 
     def _create_table(self, layout):
-        self._exec_query("CREATE TABLE IF NOT EXISTS {}({})".format(self._table, layout))
+        q = "CREATE TABLE IF NOT EXISTS {}({})".format(self._table, layout)
+        self._write(q)
+
+    def _fetchone(self, query, params=()):
+        entity = self._exec_query(query, params).fetchone()
+        found = entity is not None
+        if isinstance(entity, tuple):
+            found = any(v is not None for v in entity)
+        return self._entity_factory(entity) if found else None
+
+    def _fetchmany(self, query, params=()):
+        entities = self._exec_query(query, params).fetchmany()
+        for i, e in enumerate(entities):
+            entities[i] = self._entity_factory(e)
+        return entities
+
+    def _write(self, query, params=()):
+        self._exec_query(query, params)
+        self._db.commit()
