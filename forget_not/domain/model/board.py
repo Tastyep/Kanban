@@ -16,3 +16,8 @@ class Board(Entity):
 
     def active(self):
         return self._state.active
+
+
+def make_board(state):
+    (id, index, name, active) = state
+    return Board(id, index, name, active)

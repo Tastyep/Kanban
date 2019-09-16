@@ -3,15 +3,17 @@ from pypika import (
     Table,
 )
 
+from forget_not.domain.model.board import make_board
+
 from . import table
 from .repository import Repository
 
 
 class BoardRepo(Repository):
     def __init__(self, db):
-        super(BoardRepo, self).__init__(db, table.BOARD)
+        super(BoardRepo, self).__init__(db, table.BOARD, make_board)
         self._create_table('''
-                           id BINARY(16) PRIMARY KEY,
+                           id GUID PRIMARY KEY,
                            idx INT UNSIGNED NOT NULL,
                            name TEXT,
                            active TINYINT NOT NULL

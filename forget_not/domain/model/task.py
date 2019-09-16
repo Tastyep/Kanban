@@ -16,3 +16,8 @@ class Task(Entity):
 
     def content(self):
         return self._state.content
+
+
+def make_task(state):
+    (id, board_id, index, content) = state
+    return Task(id, board_id, index, content)
