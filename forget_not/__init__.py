@@ -6,29 +6,22 @@ from .app.facade import AppFacade
 from .app.service.module import ServiceModule
 
 from .infra.data.repo.factory import Factory as RepoFactory
-from .infra.data.repo.facade import Facade as RepoFacade
+from .infra.data.data_manager import DataManager
 
 
 def _real_main(argv):
     app_facade = AppFacade()
     service_module = ServiceModule()
 
-    db = _connect_to_db('forget_not.db')
     repo_factory = RepoFactory()
-    repo_facade = RepoFacade(repo_factory, db)
-    service_module.register_services(app_facade, repo_facade)
+    data_manager = DataManager(sqlite3, repo_factory)
+    data_facade = data_manager.connect('forget_not.db')
+    if data_facade is None:
+        return 1
 
-    interface = InterfaceModule(app_facade, repo_facade)
+    service_module.register_services(app_facade, data_facade)
+    interface = InterfaceModule(app_facade, data_facade)
     interface.run()
-
-
-def _connect_to_db(name):
-    try:
-        db = sqlite3.connect(name)
-    except sqlite3.Error as e:
-        print("Could not connect to database '{}': {}".format(name, e))
-        sys.exit(1)
-    return db
 
 
 def main(argv=None):
