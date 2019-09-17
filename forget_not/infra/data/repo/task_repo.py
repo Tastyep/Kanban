@@ -22,6 +22,15 @@ class TaskRepo(Repository):
                            content TEXT
                            ''')
 
+    def list_by_board(self, board_id):
+        t = Table(self._table)
+        q = Query.from_(t).select(
+            t.id, t.board_id, t.idx, t.content
+        ).where(
+            t.board_id == PlaceHolder("board_id")
+        )
+        return self._fetchall(q, {"board_id": board_id})
+
     def find_newest(self, board_id):
         t = Table(self._table)
         q = Query.from_(t).select(

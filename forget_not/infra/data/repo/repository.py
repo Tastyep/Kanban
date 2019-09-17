@@ -31,7 +31,7 @@ class Repository(object):
         q = Query.from_(entity).select(
             entity.Star()
         )
-        return self._fetchmany(q)
+        return self._fetchall(q)
 
     def find_by_id(self, id):
         entity = Table(self._table)
@@ -60,6 +60,12 @@ class Repository(object):
 
     def _fetchmany(self, query, params=()):
         entities = self._exec_query(query, params).fetchmany()
+        for i, e in enumerate(entities):
+            entities[i] = self._entity_factory(e)
+        return entities
+
+    def _fetchall(self, query, params=()):
+        entities = self._exec_query(query, params).fetchall()
         for i, e in enumerate(entities):
             entities[i] = self._entity_factory(e)
         return entities
