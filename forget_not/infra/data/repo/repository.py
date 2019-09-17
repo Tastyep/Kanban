@@ -4,7 +4,10 @@ from pypika import (
 )
 from pypika import functions as fn
 
-from ..mapper.placeholder import AnonPlaceHolder
+from ..mapper.placeholder import (
+    AnonPlaceHolder,
+    PlaceHolder,
+)
 
 
 class Repository(object):
@@ -38,9 +41,9 @@ class Repository(object):
         q = Query.from_(entity).select(
             entity.star
         ).where(
-            entity.id == id
+            entity.id == PlaceHolder("id")
         )
-        return self._fetchone(q)
+        return self._fetchone(q, {"id": id})
 
     def _exec_query(self, query, params):
         cursor = self._db.cursor()
