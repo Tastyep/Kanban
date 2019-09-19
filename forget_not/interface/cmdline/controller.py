@@ -40,7 +40,11 @@ class CommandLineController(object):
         handler = '_{}'.format('_'.join(path[1:]))
         assert hasattr(self, handler), \
             'missing handler {}'.format(handler)
-        getattr(self, handler)(data)
+        try:
+            getattr(self, handler)(data)
+        except RuntimeError as e:
+            self._view.report_error(str(e))
+
         return True
 
     def _add_parser(self, sub_parser, name, aliases=[], help=''):
@@ -54,18 +58,19 @@ class CommandLineController(object):
         self._cmd_dispatcher.dispatch(cmd)
 
     def _board_show(self, args):
-        board = self._board_repo.find_active()
-        if board is None:
-            self._view.report_error('no board available to display')
-            return
+        board = self._active_board()
         tasks = self._task_repo.list_by_board(board.id())
         self._view.display_board(board, tasks)
 
     def _task_add(self, args):
-        board = self._board_repo.find_active()
-        if board is None:
-            return
+        board = self._active_board()
         task_idx = self._model_index.index_task(board.id())
         task_id = self._model_identity.identify_task(board.index(), task_idx)
         cmd = AddTask(task_id, board.id(), task_idx, args['content'])
         self._cmd_dispatcher.dispatch(cmd)
+
+    def _active_board(self):
+        board = self._board_repo.find_active()
+        if board is None:
+            raise RuntimeError('A board must be created first')
+        return board
