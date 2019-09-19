@@ -10,8 +10,12 @@ class TaskService(Service):
         self._task_repo = repo_facade.task_repo()
         self._register_handlers({
             task_commands.AddTask: self._add_task,
+            task_commands.RemoveTask: self._remove_task,
         })
 
     def _add_task(self, cmd):
         task = Task(cmd.entity_id, cmd.board_id, cmd.task_idx, cmd.task_content)
         self._task_repo.create(task)
+
+    def _remove_task(self, cmd):
+        self._task_repo.delete(cmd.task_id)

@@ -22,6 +22,13 @@ class Repository(object):
         q = Query.into(Table(self._table)).insert(params)
         self._write(q, state)
 
+    def delete(self, id):
+        entity = Table(self._table)
+        q = Query.from_(entity).where(
+            entity.id == PlaceHolder('id')
+        ).delete()
+        self._write(q, {'id': id})
+
     def count(self):
         entity = Table(self._table)
         q = Query.from_().select(
@@ -41,9 +48,9 @@ class Repository(object):
         q = Query.from_(entity).select(
             entity.star
         ).where(
-            entity.id == PlaceHolder("id")
+            entity.id == PlaceHolder('id')
         )
-        return self._fetchone(q, {"id": id})
+        return self._fetchone(q, {'id': id})
 
     def _exec_query(self, query, params):
         cursor = self._db.cursor()
@@ -51,7 +58,7 @@ class Repository(object):
         return cursor
 
     def _create_table(self, layout):
-        q = "CREATE TABLE IF NOT EXISTS {}({})".format(self._table, layout)
+        q = 'CREATE TABLE IF NOT EXISTS {}({})'.format(self._table, layout)
         self._write(q)
 
     def _fetchone(self, query, params=()):

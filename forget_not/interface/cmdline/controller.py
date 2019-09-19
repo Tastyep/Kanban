@@ -3,7 +3,10 @@
 import sys
 
 from forget_not.app.command.board_commands import AddBoard
-from forget_not.app.command.task_commands import AddTask
+from forget_not.app.command.task_commands import (
+    AddTask,
+    RemoveTask,
+)
 from forget_not.domain.service.model_identity import ModelIdentity
 from forget_not.domain.service.model_index import ModelIndex
 from forget_not.infra.cmdline.cli_parser import CliParser
@@ -30,7 +33,8 @@ class CommandLineController(object):
                 .command('show', ['s']) \
                 .prev() \
             .command_table('task', ['tk']) \
-                .command('add', ['a']).argument('content', help='Content of the task')
+                .command('add', ['a']).argument('content', help='Content of the task') \
+                .command('remove', ['r']).argument('index', help='Index of the task')
 
     def run(self):
         data = self._parser.parse(sys.argv)
@@ -67,6 +71,18 @@ class CommandLineController(object):
         task_idx = self._model_index.index_task(board.id())
         task_id = self._model_identity.identify_task(board.index(), task_idx)
         cmd = AddTask(task_id, board.id(), task_idx, args['content'])
+        self._cmd_dispatcher.dispatch(cmd)
+
+    def _task_remove(self, args):
+        board = self._active_board()
+        try:
+            index = int(args['index'])
+        except ValueError:
+            self._view.report_error("invalid index: '{}'".format(args['index']))
+            return
+
+        task_id = self._model_identity.identify_task(board.index(), index)
+        cmd = RemoveTask(task_id)
         self._cmd_dispatcher.dispatch(cmd)
 
     def _active_board(self):

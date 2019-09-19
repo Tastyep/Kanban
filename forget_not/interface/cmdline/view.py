@@ -16,7 +16,7 @@ class CommandLineView(object):
             table.append([t.index(), t.content()])
 
         print("- {}\n".format(board.name()))
-        print(tabulate(table, headers="firstrow"))
+        print(tabulate(table, headers="firstrow", tablefmt="pipe"))
 
     def report_error(self, err):
         print('{}ERROR{}: {}'.format(Fore.RED, Style.RESET_ALL, err))
