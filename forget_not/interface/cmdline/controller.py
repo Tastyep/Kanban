@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
 
-import argparse
+import sys
 
 from forget_not.app.command.board_commands import AddBoard
 from forget_not.app.command.task_commands import AddTask
 from forget_not.domain.service.model_identity import ModelIdentity
 from forget_not.domain.service.model_index import ModelIndex
+from forget_not.infra.cmdline.cli_parser import CliParser
 
 from .view import CommandLineView
 
 
 class CommandLineController(object):
+    CMD_ID = '_cmd_id'
+    NS_ID = '_namespace'
+
     def __init__(self, app_facade, repo_facade):
         self._cmd_dispatcher = app_facade.command_dispatcher()
         self._board_repo = repo_facade.board_repo()
@@ -20,51 +24,48 @@ class CommandLineController(object):
         self._model_index = ModelIndex(repo_facade)
         self._model_identity = ModelIdentity(repo_facade)
 
-        parser = argparse.ArgumentParser(description='Organise your boards, tasks and notes.')
-        parser.add_argument('-t', '--task', metavar='task', dest='task', help='Create a task')
-        parser.add_argument('-b', '--board', metavar='board', help='Create a board')
-        parser.add_argument('-d', '--display', action='store_true', help='Display the current board')
-        self._parser = parser
-
-        self._arg_handlers = {
-            "task": self._add_task,
-            "board": self._add_board,
-            "display": self._display_board,
-        }
+        self._parser = CliParser().table('fn') \
+            .command_table('board', ['bd']) \
+                .command('add', ['a']).argument('name', help='Name of the board') \
+                .command('show', ['s']) \
+                .prev() \
+            .command_table('task', ['tk']) \
+                .command('add', ['a']).argument('content', help='Content of the task')
 
     def run(self):
-        args = vars(self._parser.parse_args())
-        if all(v is None for v in args.values()):
-            self._parser.print_help()
+        data = self._parser.parse(sys.argv)
+        if data is None:
             return False
-
-        for k, v in args.items():
-            if v is not None:
-                assert (k in self._arg_handlers), "missing handler for {} parameter".format(k)
-                self._arg_handlers[k](v)
-
+        path = data[CliParser.PATH_ID]
+        handler = '_{}'.format('_'.join(path[1:]))
+        assert hasattr(self, handler), \
+            'missing handler {}'.format(handler)
+        getattr(self, handler)(data)
         return True
 
-    def _add_task(self, task_content):
+    def _add_parser(self, sub_parser, name, aliases=[], help=''):
+        self._aliases[name] = aliases
+        return sub_parser.add_parser(name, aliases=aliases, help=help)
+
+    def _board_add(self, args):
+        board_idx = self._model_index.index_board()
+        board_id = self._model_identity.identify_board(board_idx)
+        cmd = AddBoard(board_id, board_idx, args['name'])
+        self._cmd_dispatcher.dispatch(cmd)
+
+    def _board_show(self, args):
+        board = self._board_repo.find_active()
+        if board is None:
+            self._view.report_error('no board available to display')
+            return
+        tasks = self._task_repo.list_by_board(board.id())
+        self._view.display_board(board, tasks)
+
+    def _task_add(self, args):
         board = self._board_repo.find_active()
         if board is None:
             return
         task_idx = self._model_index.index_task(board.id())
-        print("task_idx: {}".format(task_idx))
         task_id = self._model_identity.identify_task(board.index(), task_idx)
-        cmd = AddTask(task_id, board.id(), task_idx, task_content)
+        cmd = AddTask(task_id, board.id(), task_idx, args['content'])
         self._cmd_dispatcher.dispatch(cmd)
-
-    def _add_board(self, board_name):
-        board_idx = self._model_index.index_board()
-        board_id = self._model_identity.identify_board(board_idx)
-        cmd = AddBoard(board_id, board_idx, board_name)
-        self._cmd_dispatcher.dispatch(cmd)
-
-    def _display_board(self, v):
-        board = self._board_repo.find_active()
-        if board is None:
-            self._view.report_error("no board available to display")
-            return
-        tasks = self._task_repo.list_by_board(board.id())
-        self._view.display_board(board, tasks)
