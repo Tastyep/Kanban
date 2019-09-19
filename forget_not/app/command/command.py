@@ -1,6 +1,7 @@
-class Command(object):
-    def __init__(self, entity_id):
-        self._entity_id = entity_id
+from dataclasses import dataclass
+from uuid import UUID
 
-    def entity_id(self):
-        return self._entity_id
+
+@dataclass
+class Command:
+    entity_id: UUID

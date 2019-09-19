@@ -13,5 +13,5 @@ class BoardService(Service):
         })
 
     def _add_board(self, cmd):
-        board = Board(cmd.entity_id(), cmd.board_idx(), cmd.board_name(), True)
+        board = Board(cmd.entity_id, cmd.board_idx, cmd.board_name, True)
         self._board_repo.create(board)
