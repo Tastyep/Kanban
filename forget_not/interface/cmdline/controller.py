@@ -7,6 +7,7 @@ from forget_not.app.command.task_commands import (
     AddTask,
     RemoveTask,
 )
+from forget_not.domain.error import DomainError
 from forget_not.domain.service.model_identity import ModelIdentity
 from forget_not.domain.service.model_index import ModelIndex
 from forget_not.infra.cmdline.cli_parser import CliParser
@@ -46,14 +47,10 @@ class CommandLineController(object):
             'missing handler {}'.format(handler)
         try:
             getattr(self, handler)(data)
-        except RuntimeError as e:
+        except (RuntimeError, DomainError) as e:
             self._view.report_error(str(e))
 
         return True
-
-    def _add_parser(self, sub_parser, name, aliases=[], help=''):
-        self._aliases[name] = aliases
-        return sub_parser.add_parser(name, aliases=aliases, help=help)
 
     def _board_add(self, args):
         board_idx = self._model_index.index_board()
