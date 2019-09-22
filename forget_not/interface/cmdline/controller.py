@@ -7,12 +7,15 @@ from forget_not.app.command.task_commands import (
     AddTask,
     RemoveTask,
 )
+from forget_not.config import config
 from forget_not.domain.error import DomainError
 from forget_not.domain.service.model_identity import ModelIdentity
 from forget_not.domain.service.model_index import ModelIndex
 from forget_not.infra.cmdline.cli_parser import CliParser
 
 from .view import CommandLineView
+
+config = config['Task']
 
 
 class CommandLineController(object):
@@ -30,11 +33,15 @@ class CommandLineController(object):
 
         self._parser = CliParser().table('fn') \
             .command_table('board', ['bd']) \
-                .command('add', ['a']).argument('name', help='Name of the board') \
+                .command('add', ['a']) \
+                    .argument('name', help='Name of the board') \
                 .command('show', ['s']) \
                 .prev() \
             .command_table('task', ['tk']) \
-                .command('add', ['a']).argument('content', help='Content of the task') \
+                .command('add', ['a']) \
+                    .argument('content', help='Content of the task') \
+                    .argument('-p', '--priority', help='Priority of the task') \
+                    .argument('-c', '--context', help='Context of the task') \
                 .command('remove', ['r']).argument('index', help='Index of the task')
 
     def run(self):
@@ -67,7 +74,9 @@ class CommandLineController(object):
         board = self._active_board()
         task_idx = self._model_index.index_task(board.id())
         task_id = self._model_identity.identify_task(board.index(), task_idx)
-        cmd = AddTask(task_id, board.id(), task_idx, args['content'])
+        priority = self._opt(args, 'priority', config.default_priority)
+        context = self._opt(args, 'context', None)
+        cmd = AddTask(task_id, board.id(), task_idx, args['content'], priority, context)
         self._cmd_dispatcher.dispatch(cmd)
 
     def _task_remove(self, args):
@@ -81,6 +90,9 @@ class CommandLineController(object):
         task_id = self._model_identity.identify_task(board.index(), index)
         cmd = RemoveTask(task_id)
         self._cmd_dispatcher.dispatch(cmd)
+
+    def _opt(self, args, key, default):
+        return args[key] if (key in args and args[key] is not None) else default
 
     def _active_board(self):
         board = self._board_repo.find_active()

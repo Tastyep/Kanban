@@ -46,11 +46,11 @@ class CliParser(object):
         self._table.commands[name] = command
         return self
 
-    def argument(self, placeholder, help=''):
+    def argument(self, *args, **kwargs):
         assert self._table is not None, "a table must be created first"
         assert len(self._table.commands) > 0, "a command must be created first"
         cmds = self._table.commands
-        cmds[list(cmds.keys())[-1]].add_argument(placeholder, help=help)
+        cmds[list(cmds.keys())[-1]].add_argument(*args, **kwargs)
         return self
 
     def prev(self):

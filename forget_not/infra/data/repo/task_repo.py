@@ -19,13 +19,15 @@ class TaskRepo(Repository):
                            id GUID PRIMARY KEY,
                            board_id GUID NOT NULL,
                            idx INT UNSIGNED NOT NULL,
-                           content TEXT
+                           content TEXT,
+                           priority CHAR,
+                           context CHAR(255)
                            ''')
 
     def list_by_board(self, board_id):
         t = Table(self._table)
         q = Query.from_(t).select(
-            t.id, t.board_id, t.idx, t.content
+            t.id, t.board_id, t.idx, t.content, t.priority, t.context
         ).where(
             t.board_id == PlaceHolder("board_id")
         )
@@ -34,7 +36,7 @@ class TaskRepo(Repository):
     def find_newest(self, board_id):
         t = Table(self._table)
         q = Query.from_(t).select(
-            t.id, t.board_id, fn.Max(t.idx), t.content
+            t.id, t.board_id, fn.Max(t.idx), t.content, t.priority, t.context
         ).where(
             t.board_id == PlaceHolder("board_id")
         )

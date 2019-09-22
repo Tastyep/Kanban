@@ -8,3 +8,5 @@ class TaskState:
     board_id: UUID
     index: int
     content: str
+    priority: str
+    context: str
