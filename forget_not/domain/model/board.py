@@ -3,17 +3,20 @@ from .state.board_state import BoardState
 
 
 class Board(Entity):
-    def __init__(self, id, index, name, active):
+    def __init__(self, *args):
         super(Board, self).__init__(
-            BoardState(id, index, name, active)
+            BoardState(*args)
         )
 
+    @property
     def index(self):
         return self._state.index
 
+    @property
     def name(self):
         return self._state.name
 
+    @property
     def active(self):
         return self._state.active
 
