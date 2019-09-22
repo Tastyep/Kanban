@@ -2,18 +2,18 @@
 
 import sys
 
-from forget_not.app.command.board_commands import AddBoard
-from forget_not.app.command.task_commands import (
-    AddTask,
-    RemoveTask,
-)
 from forget_not.config import config
 from forget_not.domain.error import DomainError
 from forget_not.domain.service.model_identity import ModelIdentity
 from forget_not.domain.service.model_index import ModelIndex
 from forget_not.infra.cmdline.cli_parser import CliParser
+from forget_not.interface.cmdline.view import CommandLineView
 
-from .view import CommandLineView
+from ..command.board_commands import AddBoard
+from ..command.task_commands import (
+    AddTask,
+    RemoveTask,
+)
 
 config = config['Task']
 
@@ -67,16 +67,16 @@ class CommandLineController(object):
 
     def _board_show(self, args):
         board = self._active_board()
-        tasks = self._task_repo.list_by_board(board.id())
+        tasks = self._task_repo.list_by_board(board.id)
         self._view.display_board(board, tasks)
 
     def _task_add(self, args):
         board = self._active_board()
-        task_idx = self._model_index.index_task(board.id())
-        task_id = self._model_identity.identify_task(board.index(), task_idx)
+        task_idx = self._model_index.index_task(board.id)
+        task_id = self._model_identity.identify_task(board.index, task_idx)
         priority = self._opt(args, 'priority', config.default_priority)
         context = self._opt(args, 'context', None)
-        cmd = AddTask(task_id, board.id(), task_idx, args['content'], priority, context)
+        cmd = AddTask(task_id, board.id, task_idx, args['content'], priority, context)
         self._cmd_dispatcher.dispatch(cmd)
 
     def _task_remove(self, args):
@@ -87,7 +87,7 @@ class CommandLineController(object):
             self._view.report_error("invalid index: '{}'".format(args['index']))
             return
 
-        task_id = self._model_identity.identify_task(board.index(), index)
+        task_id = self._model_identity.identify_task(board.index, index)
         cmd = RemoveTask(task_id)
         self._cmd_dispatcher.dispatch(cmd)
 

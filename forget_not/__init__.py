@@ -2,9 +2,9 @@ import sys
 import sqlite3
 import os
 
-from .interface.module import InterfaceModule
-from .app.facade import AppFacade
+from .app.app_facade import AppFacade
 from .app.service.module import ServiceModule
+from .app.controller.module import ControllerModule
 
 from .infra.data.repo.factory import Factory as RepoFactory
 from .infra.data.data_manager import DataManager
@@ -16,6 +16,7 @@ def _real_main(argv):
     config.load_from_file('{}/config.ini'.format(app_path))
 
     app_facade = AppFacade()
+    controller_module = ControllerModule()
     service_module = ServiceModule()
 
     repo_factory = RepoFactory()
@@ -24,9 +25,9 @@ def _real_main(argv):
     if data_facade is None:
         return 1
 
+    controller_module.setup_controllers(app_facade, data_facade)
     service_module.register_services(app_facade, data_facade)
-    interface = InterfaceModule(app_facade, data_facade)
-    interface.run()
+    controller_module.run()
 
 
 def main(argv=None):
