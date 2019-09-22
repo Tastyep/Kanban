@@ -14,13 +14,17 @@ class CommandLineView(object):
     def __init__(self):
         color_init(autoreset=True)
 
-    def display_board(self, board, tasks):
-        table = [["index", "task"]]
+    def display_board(self, board, tasks, filter):
+        headers = ['Idx', 'task']
+        table = []
         for t in tasks:
             table.append([t.index, self._format_content(t)])
+        assert filter in headers, 'filter should be one of {}'.format(headers)
+        filter_idx = headers.index(filter)
+        table = sorted(table, key=lambda entry: entry[filter_idx])
 
         print("- {}\n".format(board.name))
-        print(tabulate(table, headers="firstrow", tablefmt="pipe"))
+        print(tabulate(table, headers=headers, tablefmt="pipe"))
 
     def report_error(self, err):
         print('{}ERROR{}: {}'.format(Fore.RED, Style.RESET_ALL, err))
@@ -46,5 +50,5 @@ class CommandLineView(object):
             code = task_config.priority_d
         if p == 'E':
             code = task_config.priority_e
-        assert code is not None, f"Invalid priority {p}"
+        assert code is not None, f'Invalid priority {p}'
         return getattr(Fore, code)

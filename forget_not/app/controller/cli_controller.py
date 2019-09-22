@@ -36,6 +36,7 @@ class CommandLineController(object):
                 .command('add', ['a']) \
                     .argument('name', help='Name of the board') \
                 .command('show', ['s']) \
+                .argument('-s', '--sort', dest='column', default='index', help='Sort by column') \
                 .prev() \
             .command_table('task', ['tk']) \
                 .command('add', ['a']) \
@@ -68,7 +69,8 @@ class CommandLineController(object):
     def _board_show(self, args):
         board = self._active_board()
         tasks = self._task_repo.list_by_board(board.id)
-        self._view.display_board(board, tasks)
+        filter = args['column']
+        self._view.display_board(board, tasks, filter)
 
     def _task_add(self, args):
         board = self._active_board()
