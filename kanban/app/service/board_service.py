@@ -1,4 +1,4 @@
-from forget_not.domain.model.board import Board
+from kanban.domain.model.board import Board
 
 from ..command import board_commands
 from .service import Service

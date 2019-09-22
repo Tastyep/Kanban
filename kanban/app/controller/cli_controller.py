@@ -2,12 +2,12 @@
 
 import sys
 
-from forget_not.config import config
-from forget_not.domain.error import DomainError
-from forget_not.domain.service.model_identity import ModelIdentity
-from forget_not.domain.service.model_index import ModelIndex
-from forget_not.infra.cmdline.cli_parser import CliParser
-from forget_not.interface.cmdline.view import CommandLineView
+from kanban.config import config
+from kanban.domain.error import DomainError
+from kanban.domain.service.model_identity import ModelIdentity
+from kanban.domain.service.model_index import ModelIndex
+from kanban.infra.cmdline.cli_parser import CliParser
+from kanban.interface.cmdline.view import CommandLineView
 
 from ..command.board_commands import AddBoard
 from ..command.task_commands import (

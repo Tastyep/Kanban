@@ -4,7 +4,7 @@ from pypika import (
 )
 from pypika import functions as fn
 
-from forget_not.domain.model.board import make_board
+from kanban.domain.model.board import make_board
 
 from . import table
 from .repository import Repository

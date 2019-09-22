@@ -4,7 +4,7 @@ from pypika import (
 )
 from pypika import functions as fn
 
-from forget_not.domain.model.task import make_task
+from kanban.domain.model.task import make_task
 
 from . import table
 from ..mapper.placeholder import PlaceHolder

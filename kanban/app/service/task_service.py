@@ -1,4 +1,4 @@
-from forget_not.domain.model.task import Task
+from kanban.domain.model.task import Task
 
 from ..command import task_commands
 from .service import Service

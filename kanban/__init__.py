@@ -21,7 +21,7 @@ def _real_main(argv):
 
     repo_factory = RepoFactory()
     data_manager = DataManager(sqlite3, repo_factory)
-    data_facade = data_manager.connect('forget_not.db')
+    data_facade = data_manager.connect('kanban.db')
     if data_facade is None:
         return 1
 

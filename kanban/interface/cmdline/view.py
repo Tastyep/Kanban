@@ -5,7 +5,7 @@ from colorama import (
 from colorama import init as color_init
 from tabulate import tabulate
 
-from forget_not.config import config
+from kanban.config import config
 
 task_config = config['Task']
 
@@ -15,7 +15,7 @@ class CommandLineView(object):
         color_init(autoreset=True)
 
     def display_board(self, board, tasks, filter):
-        headers = ['Idx', 'task']
+        headers = ['index', 'task']
         table = []
         for t in tasks:
             table.append([t.index, self._format_content(t)])
