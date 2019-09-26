@@ -41,14 +41,14 @@ class CommandLineView(object):
     def _priority_to_color(self, p):
         code = None
         if p == 'A':
-            code = task_config.priority_a
+            code = _config.priority_a
         if p == 'B':
-            code = task_config.priority_b
+            code = _config.priority_b
         if p == 'C':
-            code = task_config.priority_c
+            code = _config.priority_c
         if p == 'D':
-            code = task_config.priority_d
+            code = _config.priority_d
         if p == 'E':
-            code = task_config.priority_e
+            code = _config.priority_e
         assert code is not None, f'Invalid priority {p}'
         return getattr(Fore, code)

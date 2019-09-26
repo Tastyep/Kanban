@@ -15,7 +15,7 @@ from ..command.task_commands import (
     RemoveTask,
 )
 
-config = config['Task']
+_config = config['Cli']
 
 
 class CommandLineController(object):
@@ -76,7 +76,7 @@ class CommandLineController(object):
         board = self._active_board()
         task_idx = self._model_index.index_task(board.id)
         task_id = self._model_identity.identify_task(board.index, task_idx)
-        priority = self._opt(args, 'priority', config.default_priority)
+        priority = self._opt(args, 'priority', _config.default_priority)
         context = self._opt(args, 'context', None)
         cmd = AddTask(task_id, board.id, task_idx, args['content'], priority, context)
         self._cmd_dispatcher.dispatch(cmd)

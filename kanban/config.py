@@ -11,7 +11,7 @@ class Singleton(type):
         return cls._instances[cls]
 
 
-class Task(object):
+class Cli(object):
     default_priority = 'C'
     priority_a = 'RED'
     priority_b = 'MAGENTA'
@@ -41,7 +41,7 @@ class Config(object):
 
     def _init_cache(self):
         self._entries = {
-            'Task': Task(),
+            'Cli': Cli(),
         }
 
     def _load_cache(self):
