@@ -12,6 +12,7 @@ class Singleton(type):
 
 
 class Cli(object):
+    default_columns = ['Todo','In Progress','Done']
     default_priority = 'C'
     priority_a = 'RED'
     priority_b = 'MAGENTA'
@@ -22,6 +23,8 @@ class Cli(object):
 
 class Config(object):
     __metaclass__ = Singleton
+
+    _SPLIT_CHAR = ','
 
     def __init__(self):
         self._parser = configparser.ConfigParser()
@@ -62,6 +65,9 @@ class Config(object):
         entry = getattr(category, entry_name)
         value = entry
 
+        def str_typed(str):
+            return value.startswith(("'", '"')) and value[0] is value[-1]
+
         if type(entry) is int:
             value = parser.getint(entry_name, fallback=entry)
         elif type(entry) is float:
@@ -70,11 +76,14 @@ class Config(object):
             value = parser.getboolean(entry_name, fallback=entry)
         else:
             value = parser.get(entry_name, fallback=entry)
-            if (type(entry) is str and
-                    (value.startswith(("'", '"')) and
-                     value[0] is value[-1])):
+            if type(entry) is str or type(entry) is list:
+                if not str_typed(value):
+                    # Todo throw parsing error
+                    return
                 value = value[1:-1]
-        setattr(category, entry_name, value)
+                if type(entry) is list:
+                    value = value.split(self._SPLIT_CHAR)
 
+        setattr(category, entry_name, value)
 
 config = Config()
