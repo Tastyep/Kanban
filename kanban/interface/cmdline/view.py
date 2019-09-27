@@ -1,39 +1,56 @@
+from itertools import zip_longest
+
 from colorama import (
     Fore,
     Style,
 )
 from colorama import init as color_init
+from kanban.config import config
 from tabulate import tabulate
 
-from kanban.config import config
-
-task_config = config['Task']
+_config = config['Cli']
 
 
 class CommandLineView(object):
     def __init__(self):
         color_init(autoreset=True)
 
-    def display_board(self, board, tasks, filter):
-        headers = ['index', 'task']
-        table = []
-        for t in tasks:
-            table.append([t.index, self._format_content(t)])
-        assert filter in headers, 'filter should be one of {}'.format(headers)
-        filter_idx = headers.index(filter)
-        table = sorted(table, key=lambda entry: entry[filter_idx])
+    def display_board(self, data, filter):
+        headers = []
+        columns = {}
 
-        print("- {}\n".format(board.name))
+        # print("data: {}".format(data))
+        for c in data['columns']:
+            headers.append(c['title'])
+            columns[c['id']] = []
+        for t in data['tasks']:
+            columns[t['column_id']].append(t)
+
+        table = []
+        sorted_columns = []
+        for column in columns.values():
+            sorted_columns.append(sorted(column, key=lambda task: task[filter]))
+
+        rows = zip_longest(*sorted_columns, fillvalue=None)
+        for row in rows:
+            table_row = []
+            for task in row:
+                table_row.append(self._format_task(task))
+            table.append(table_row)
+
+        print("> {} <\n".format(data['board']['name']))
         print(tabulate(table, headers=headers, tablefmt="pipe"))
 
     def report_error(self, err):
         print('{}ERROR{}: {}'.format(Fore.RED, Style.RESET_ALL, err))
 
-    def _format_content(self, task):
-        context = task.context
-        content = "{}{}{} {}".format(
-            self._priority_to_color(task.priority), '#', Style.RESET_ALL,
-            task.content)
+    def _format_task(self, task):
+        if task is None:
+            return None
+        context = task['context']
+        content = "{}{}_{} {}".format(
+            task['index'], self._priority_to_color(task['priority']), Style.RESET_ALL,
+            task['content'])
         if context is not None:
             content += ' @' + context
         return content

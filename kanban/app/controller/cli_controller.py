@@ -4,6 +4,7 @@ import sys
 
 from kanban.config import config
 from kanban.domain.error import DomainError
+from kanban.domain.service.model_composition import ModelComposition
 from kanban.domain.service.model_identity import ModelIdentity
 from kanban.domain.service.model_index import ModelIndex
 from kanban.infra.cmdline.cli_parser import CliParser
