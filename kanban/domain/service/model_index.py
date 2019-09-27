@@ -10,6 +10,13 @@ class ModelIndex(object):
             board_idx = newest.index + 1
         return board_idx
 
+    def index_column(self, board_id):
+        column_idx = 0
+        newest = self._column_repo.find_rightmost(board_id)
+        if newest is not None:
+            column_idx = newest.index + 1
+        return column_idx
+
     def index_task(self, board_id):
         task_idx = 0
         newest = self._task_repo.find_newest(board_id)
