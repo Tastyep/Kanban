@@ -20,7 +20,7 @@ class Repository(object):
         state = entity.state()
         params = AnonPlaceHolder(len(state))
         q = Query.into(Table(self._table)).insert(params)
-        self._write(q, state)
+        self._write(q, tuple(state.values()))
 
     def delete(self, id):
         entity = Table(self._table)

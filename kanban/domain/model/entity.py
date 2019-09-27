@@ -1,4 +1,4 @@
-from dataclasses import astuple
+from dataclasses import asdict
 
 
 class Entity(object):
@@ -10,4 +10,4 @@ class Entity(object):
         return self._state.id
 
     def state(self):
-        return astuple(self._state)
+        return asdict(self._state)
