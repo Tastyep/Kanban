@@ -14,7 +14,7 @@ class TaskService(Service):
         })
 
     def _add_task(self, cmd):
-        task = Task(cmd.entity_id, cmd.board_id, cmd.task_idx,
+        task = Task(cmd.entity_id, cmd.board_id, cmd.column_id, cmd.task_idx,
                     cmd.task_content, cmd.task_priority, cmd.task_context)
         self._task_repo.create(task)
 

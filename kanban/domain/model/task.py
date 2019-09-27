@@ -13,6 +13,10 @@ class Task(Entity):
         return self._state.board_id
 
     @property
+    def column_id(self):
+        return self._state.column_id
+
+    @property
     def index(self):
         return self._state.index
 
@@ -30,5 +34,5 @@ class Task(Entity):
 
 
 def make_task(state):
-    (id, board_id, index, content, priority, context) = state
-    return Task(id, board_id, index, content, priority, context)
+    (id, board_id, column_id, index, content, priority, context) = state
+    return Task(id, board_id, column_id, index, content, priority, context)

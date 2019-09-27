@@ -6,6 +6,7 @@ from uuid import UUID
 class TaskState:
     id: UUID
     board_id: UUID
+    column_id: UUID
     index: int
     content: str
     priority: str
