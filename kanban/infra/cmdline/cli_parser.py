@@ -41,7 +41,7 @@ class CliParser(object):
 
     def command(self, name, aliases=[], help=''):
         assert self._table is not None, "a table must be created first"
-        self._aliases[name] = aliases
+        self._table.aliases[name] = aliases
         command = self._table.subparser.add_parser(name, aliases=aliases, help=help)
         self._table.commands[name] = command
         return self
@@ -72,10 +72,10 @@ class CliParser(object):
             parser.print_help()
             return None
         cmd = data[self.CMD_ID]
-        keys = self._aliases.keys()
+        keys = table.aliases.keys()
         if cmd not in keys:
             for k in keys:
-                if cmd in self._aliases[k]:
+                if cmd in table.aliases[k]:
                     cmd = k
                     break
         if cmd is None:
@@ -95,5 +95,6 @@ class Table(object):
         self.parent = parent
         self.parser = parser
         self.subparser = subparser
-        self.sub_tables = {}
+        self.aliases = dict()
+        self.sub_tables = dict()
         self.commands = OrderedDict()
