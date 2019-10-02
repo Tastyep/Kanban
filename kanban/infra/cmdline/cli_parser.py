@@ -22,16 +22,17 @@ class CliParser(object):
         lineage = [name]
         if self._table is not None:
             lineage = compose_lineage(self._table) + lineage
-        usage = '{} <command>'.format(' '.join(lineage))
+        usage = '{}'.format(' '.join(lineage))
         parser = argparse.ArgumentParser(prog=name, usage=usage)
         subparser = parser.add_subparsers(title='commands', dest=self.CMD_ID, metavar='', help='')
-        table = Table(self._table, parser, subparser)
+        table = _Table(self._table, parser, subparser)
         if self._root is None:
             self._root = table
             self._table = self._root
         else:
-            self._table.sub_tables[name] = table
+            self._table.commands[-1].sub_table = table
             self._table = table
+            self._command = None
 
         return self
 
@@ -41,16 +42,15 @@ class CliParser(object):
 
     def command(self, name, aliases=[], help=''):
         assert self._table is not None, "a table must be created first"
-        self._table.aliases[name] = aliases
-        command = self._table.subparser.add_parser(name, aliases=aliases, help=help)
-        self._table.commands[name] = command
+        parser = self._table.subparser.add_parser(name, aliases=aliases, help=help)
+        self._table.commands.append(_Command(name, aliases, parser))
         return self
 
     def argument(self, *args, **kwargs):
         assert self._table is not None, "a table must be created first"
         assert len(self._table.commands) > 0, "a command must be created first"
-        cmds = self._table.commands
-        cmds[list(cmds.keys())[-1]].add_argument(*args, **kwargs)
+        cmd = self._table.commands[-1]
+        cmd.parser.add_argument(*args, **kwargs)
         return self
 
     def prev(self):
@@ -64,37 +64,47 @@ class CliParser(object):
         return self._parse_table(self._root, argv[1:], {self.PATH_ID: []})
 
     def _parse_table(self, table, argv, params):
-        has_subtables = len(table.sub_tables) > 0
-        args = argv[0:1] if has_subtables else argv
-        parser = table.parser
-        data = vars(parser.parse_args(args))
-        if self.CMD_ID not in data:
-            parser.print_help()
+        def command_name(argv):
+            for v in argv:
+                if v[0] != '-':
+                    return v
             return None
-        cmd = data[self.CMD_ID]
-        keys = table.aliases.keys()
-        if cmd not in keys:
-            for k in keys:
-                if cmd in table.aliases[k]:
-                    cmd = k
-                    break
+
+        def command_by_name(table, cmd_name):
+            for cmd in table.commands:
+                if cmd.name == cmd_name or cmd_name in cmd.aliases:
+                    return cmd
+            return None
+
+        parser = table.parser
+        cmd_name = command_name(argv)
+        cmd = None if cmd_name is None else command_by_name(table, cmd_name)
         if cmd is None:
             parser.print_help()
             return None
+
+        args = argv if cmd.sub_table is None else argv[0:1]
+        data = vars(parser.parse_args(args))
         params[self.PATH_ID].append(parser.prog)
-        if has_subtables:
-            next = table.sub_tables[cmd]
+        if cmd.sub_table is not None:
+            next = cmd.sub_table
             return self._parse_table(next, argv[1:], {**params, **data})
 
-        params[self.PATH_ID].append(cmd)
+        params[self.PATH_ID].append(cmd.name)
         return {**params, **data}
 
 
-class Table(object):
+class _Command(object):
+    def __init__(self, name, aliases, parser):
+        self.name = name
+        self.aliases = aliases
+        self.parser = parser
+        self.sub_table = None
+
+
+class _Table(object):
     def __init__(self, parent, parser, subparser):
         self.parent = parent
         self.parser = parser
         self.subparser = subparser
-        self.aliases = dict()
-        self.sub_tables = dict()
-        self.commands = OrderedDict()
+        self.commands = list()
