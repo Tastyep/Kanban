@@ -22,6 +22,15 @@ class Repository(object):
         q = Query.into(Table(self._table)).insert(params)
         self._write(q, tuple(state.values()))
 
+    def update(self, key, state):
+        entity = Table(self._table)
+        q = Query.update(entity).set(
+            key, PlaceHolder('value')
+        ).where(
+            entity.id == PlaceHolder('id')
+        )
+        self._write(q, {'value': state[key], 'id': state['id']})
+
     def delete(self, id):
         entity = Table(self._table)
         q = Query.from_(entity).where(
