@@ -48,7 +48,7 @@ class CommandLineView(object):
         if task is None:
             return None
         context = task['context']
-        content = "{}{}_{} {}".format(
+        content = "{}{}#{} {}".format(
             task['index'], self._priority_to_color(task['priority']), Style.RESET_ALL,
             task['content'])
         if context is not None:
