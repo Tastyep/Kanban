@@ -17,3 +17,9 @@ class AddTask(Command):
 @dataclass
 class RemoveTask(object):
     task_id: UUID
+
+
+@dataclass
+class MoveTask(object):
+    task_id: UUID
+    column_id: UUID

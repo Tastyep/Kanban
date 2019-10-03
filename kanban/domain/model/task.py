@@ -32,6 +32,10 @@ class Task(Entity):
     def context(self):
         return self._state.context
 
+    @column_id.setter
+    def column_id(self, id):
+        self._state.column_id = id
+
 
 def make_task(state):
     (id, board_id, column_id, index, content, priority, context) = state

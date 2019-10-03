@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import sys
 
 from kanban.config import config
@@ -14,10 +12,15 @@ from ..command.board_commands import AddBoard
 from ..command.column_commands import AddColumn
 from ..command.task_commands import (
     AddTask,
+    MoveTask,
     RemoveTask,
 )
 
 _config = config['Cli']
+
+
+class _InvalidArgument(Exception):
+    pass
 
 
 class CommandLineController(object):
@@ -40,7 +43,7 @@ class CommandLineController(object):
                 .command('add', ['a']) \
                     .argument('name', help='Name of the board') \
                 .command('show', ['s']) \
-                    .argument('-s', '--sort', dest='column', default='index', help='Sort by column') \
+                    .argument('-s', '--sort', dest='opt', default='index', help='Sort by option') \
                 .prev() \
             .command_table('column', ['cl']) \
                 .command('add', ['a']) \
@@ -53,13 +56,13 @@ class CommandLineController(object):
                     .argument('content', help='Content of the task') \
                     .argument('-p', '--priority', help='Priority of the task') \
                     .argument('-c', '--context', help='Context of the task') \
-                    .prev() \
-                .command('move', ['mv']) \
-                    .command('right', ['r']) \
-                    .command('left', ['l']) \
-                    .argument('content', help='Content of the task') \
                 .command('remove', ['r']) \
-                    .argument('index', help='Index of the task')
+                    .argument('index', help='Index of the task') \
+                .command_table('move', ['mv']) \
+                    .command('right', ['r']) \
+                        .argument('index', help='Index of the task') \
+                    .command('left', ['l']) \
+                        .argument('index', help='Index of the task')
 
     def run(self):
         data = self._parser.parse(sys.argv)
@@ -71,7 +74,7 @@ class CommandLineController(object):
             'missing handler {}'.format(handler)
         try:
             getattr(self, handler)(data)
-        except (RuntimeError, DomainError) as e:
+        except (RuntimeError, DomainError, _InvalidArgument) as e:
             self._view.report_error(str(e))
 
         return True
@@ -84,12 +87,12 @@ class CommandLineController(object):
         for i, title in enumerate(_config.default_columns):
             column_id = self._model_identity.identify_column(board_idx, i)
             add_column = AddColumn(column_id, board_id, i, title)
-            columns = self._cmd_dispatcher.dispatch(add_column)
+            self._cmd_dispatcher.dispatch(add_column)
+        self._display_board(board_id)
 
     def _board_show(self, args):
         board = self._active_board()
-        tasks = self._task_repo.list_by_board(board.id)
-        filter = args['column']
+        filter = self._stropt(args, 'opt', None)
         self._display_board(board.id, filter)
 
     def _task_add(self, args):
@@ -97,31 +100,65 @@ class CommandLineController(object):
         column = self._column_repo.find_leftmost(board.id)
         task_idx = self._model_index.index_task(board.id)
         task_id = self._model_identity.identify_task(board.index, task_idx)
-        priority = self._opt(args, 'priority', _config.default_priority)
-        context = self._opt(args, 'context', None)
+        priority = self._stropt(args, 'priority', _config.default_priority)
+        context = self._stropt(args, 'context', None)
         cmd = AddTask(task_id, board.id, column.id, task_idx, args['content'], priority, context)
         self._cmd_dispatcher.dispatch(cmd)
-        tasks = self._task_repo.list_by_board(board.id)
         self._display_board(board.id)
 
     def _task_remove(self, args):
         board = self._active_board()
-        try:
-            index = int(args['index'])
-        except ValueError:
-            self._view.report_error("invalid index: '{}'".format(args['index']))
-            return
 
         task_id = self._model_identity.identify_task(board.index, index)
         cmd = RemoveTask(task_id)
         self._cmd_dispatcher.dispatch(cmd)
 
-    def _opt(self, args, key, default):
+    def _task_move_right(self, args):
+        board = self._active_board()
+        task_idx = self._intopt(args, 'index', None)
+        task_id = self._model_identity.identify_task(board.index, task_idx)
+        task = self._expect(self._task_repo, task_id, f'invalid index {task_idx}')
+        column = self._column_repo.find_by_id(task.column_id)
+        next = self._column_repo.find_right_to(column.index)
+        if next is None:
+            raise _InvalidArgument('already in rightmost column')
+        cmd = MoveTask(task.id, next.id)
+        self._cmd_dispatcher.dispatch(cmd)
+        self._display_board(board.id)
+
+    def _task_move_left(self, args):
+        board = self._active_board()
+        task_idx = self._intopt(args, 'index', None)
+        task_id = self._model_identity.identify_task(board.index, task_idx)
+        task = self._expect(self._task_repo, task_id, f'invalid index {task_idx}')
+        column = self._column_repo.find_by_id(task.column_id)
+        next = self._column_repo.find_left_to(column.index)
+        if next is None:
+            raise _InvalidArgument('already in leftmost column')
+        cmd = MoveTask(task.id, next.id)
+        self._cmd_dispatcher.dispatch(cmd)
+        self._display_board(board.id)
+
+    def _stropt(self, args, key, default):
         return args[key] if (key in args and args[key] is not None) else default
+
+    def _intopt(self, args, key, default):
+        if not (key in args) or args[key] is None:
+            return default
+        try:
+            return int(args[key])
+        except ValueError as e:
+            raise ValueError("invalid {}: '{}'".format(key, args[key])) from e
 
     def _display_board(self, id, filter='index'):
         data = self._model_composition.board_data(id)
         self._view.display_board(data, filter)
+
+    def _expect(self, repo, id, errmsg):
+        entity = repo.find_by_id(id)
+        if entity is None:
+            raise _InvalidArgument(errmsg)
+        return entity
 
     def _active_board(self):
         board = self._board_repo.find_active()

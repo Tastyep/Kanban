@@ -11,6 +11,7 @@ class TaskService(Service):
         self._register_handlers({
             task_commands.AddTask: self._add_task,
             task_commands.RemoveTask: self._remove_task,
+            task_commands.MoveTask: self._move_task,
         })
 
     def _add_task(self, cmd):
@@ -20,3 +21,8 @@ class TaskService(Service):
 
     def _remove_task(self, cmd):
         self._task_repo.delete(cmd.task_id)
+
+    def _move_task(self, cmd):
+        task = self._task_repo.find_by_id(cmd.task_id)
+        task.column_id = cmd.column_id
+        self._task_repo.update('column_id', task.state())
