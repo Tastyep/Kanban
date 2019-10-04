@@ -13,7 +13,7 @@ from .config import config
 
 def _real_main(argv):
     app_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    config.load_from_file('{}/config.ini'.format(app_path))
+    config.load_from_file(f'{app_path}/{__name__}/config.ini')
 
     app_facade = AppFacade()
     controller_module = ControllerModule()
